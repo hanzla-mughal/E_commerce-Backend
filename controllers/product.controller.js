@@ -1,23 +1,22 @@
 import Product from "../models/product.model.js";
 import Category from "../models/category.model.js";
 import cloudinary from "../config/cloudinary.js";
-import fs from "fs"
+import fs from "fs";
+import { error } from "console";
 export const createProduct = async (req, res) => {
   try {
     const { name, description, stock, price, category } = req.body;
-   // const  image= req.file.filename
-   let result;
-   try{
-    result=await cloudinary.uploader.upload(req.file.path);
-    console.log(result)
-   }
-  catch(err){
-    console.log(err)
+    // const  image= req.file.filename
+    let result;
+    try {
+      result = await cloudinary.uploader.upload(req.file.path);
+      console.log(result);
+    } catch (err) {
+      console.log(err);
       return res.status(500).json({ message: "Image upload failed" });
-
-  }
+    }
     const user = req.user.userID;
-    
+
     const foundCategory = await Category.findById(category);
     if (!foundCategory) {
       return res.status(404).json({ message: "Category not found" });
@@ -27,13 +26,13 @@ export const createProduct = async (req, res) => {
       description,
       stock,
       price,
-      image:[result.secure_url],
+      image: [{ url: result.secure_url, public_id: result.public_id }],
       category: foundCategory._id,
       user,
     });
-      fs.unlinkSync(req.file.path)
-    console.log(req.body)
-    console.log(req.file)
+    fs.unlinkSync(req.file.path);
+    console.log(req.body);
+    console.log(req.file);
     res.status(201).json({ message: "Product created", category: create });
   } catch (err) {
     console.log(err.message);
@@ -54,7 +53,7 @@ export const getProduct = async (req, res) => {
 };
 export const updateProduct = async (req, res) => {
   try {
-    const { name, description, price, stock, image } = req.body;
+    const { name, description, price, stock } = req.body;
     const ID = req.params.id;
     const find = await Product.findById(ID);
     const userId = req.user.userID;
@@ -73,7 +72,6 @@ export const updateProduct = async (req, res) => {
         description,
         price,
         stock,
-        image,
       },
       {
         new: true,
@@ -214,23 +212,67 @@ export const ZA = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-export const pagination=async(req,res)=>{
-  try{
-    const page=Number(req.query.page)||1
-const limit=Number(req.query.limit)||5
-const skip=(page-1)*limit
-const total=await Product.countDocuments()
-const totalPages=Math.ceil(total/limit)
-const find=await Product.find({}).skip(skip).limit(limit)
-  res.status(200).json({Products:find,pagination:{
-    totalItems:total,
-    TotalPages:totalPages,
-    currentPage:page,
-    pageSize:limit
-  }})
-  }
-  catch(err){
+export const pagination = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+    const total = await Product.countDocuments();
+    const totalPages = Math.ceil(total / limit);
+    const find = await Product.find({}).skip(skip).limit(limit);
+    res.status(200).json({
+      Products: find,
+      pagination: {
+        totalItems: total,
+        TotalPages: totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (err) {
     res.status(500).json({ error: err.message });
-
   }
-}
+};
+export const updateImage = async (req, res) => {
+  const ID = req.params.id;
+  let result;
+  const product = await Product.findById(ID);
+  const oldPublicID = product.image[0].public_id;
+  if (oldPublicID) {
+    try {
+      await cloudinary.uploader.destroy(oldPublicID, {
+        invalidate: true,
+      });
+    } catch (err) {
+      console.log(err.message);
+      return res.status(401).json({ error: err.message });
+    }
+  }
+
+  try {
+    result = await cloudinary.uploader.upload(req.file.path, {
+      overwrite: true,
+      invalidate: true,
+    });
+
+    const update = await Product.findByIdAndUpdate(
+      ID,
+      {
+        image: [
+          {
+            url: result.secure_url,
+            public_id: result.public_id,
+          },
+        ],
+      },
+      { new: true },
+    );
+    res
+      .status(200)
+      .json({ message: "image Update succesfully", Update: update });
+    fs.unlink(req.file.path);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
