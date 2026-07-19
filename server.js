@@ -1,8 +1,5 @@
 import dotenv  from "dotenv";
 dotenv.config()
-console.log("Cloudinary Name:", process.env.CLOUDINARY_NAME)
-console.log("Cloudinary Name:", process.env.CLOUDINARY_API_KEY)
-console.log("Cloudinary Name:", process.env.CLOUDINARY_SECRET_KEY)
 import app from "./app.js"
 import connectDB from "./config/db.js";
 

@@ -1,7 +1,6 @@
 import { v2 as cloudinary} from "cloudinary"
 import dotenv from "dotenv"
 dotenv.config()
-console.log("Inside cloudinary.js:", process.env.CLOUDINARY_NAME);
 
 
 cloudinary.config({
