@@ -13,8 +13,8 @@ const productSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
-      min:[0,"Price cannot be negative"],
-      default:0
+      min: [0, "Price cannot be negative"],
+      default: 0,
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -25,18 +25,25 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      
     },
     stock: {
       type: Number,
       required: true,
       min: [0, "Stock cannot be negative"],
-       default:0
+      default: 0,
     },
-    image:[ {
-      type: String,
-      required: true,
-    }],
+    image: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        public_id: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
