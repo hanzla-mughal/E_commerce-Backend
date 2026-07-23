@@ -53,29 +53,49 @@ export const getCart = async (req, res) => {
 };
 //DELETE
 export const delCart = async (req, res) => {
-  try{
-  const ID = req.params.id;
-  const userId = req.user.userID;
-  const cart = await Cart.findOneAndUpdate(
-    { user: userId },
-    {
-      $pull: {
-        cart: {
-          product: ID,
+  try {
+    const ID = req.params.id;
+    const userId = req.user.userID;
+    const cart = await Cart.findOneAndUpdate(
+      { user: userId },
+      {
+        $pull: {
+          cart: {
+            product: ID,
+          },
         },
       },
-    },
-    {
-      new: true,
-    },
-  );
-  if (!cart) {
-   return res.status(404).json({ message: "Producct not found" });
+      {
+        new: true,
+      },
+    );
+    if (!cart) {
+      return res.status(404).json({ message: "Producct not found" });
+    }
+    res.status(200).json({ message: "Product Deleted" });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
   }
-  res.status(200).json({message:"Product Deleted"})
-}
-catch(err){
-  console.log(err.message)
-  res.status(500).json({message:err.message})
-}
+};
+//update
+export const updateCart = async (req, res) => {
+  try {
+    const ID = req.params.id;
+    const userId = req.user.userID;
+    const { quantity } = req.body;
+    const update = await Cart.findOneAndUpdate(
+      { user: userId, "cart.product": ID },
+      {
+        $set: {
+          "cart.$.quantity": quantity,
+        },
+      },
+      { new: true },
+    );
+    res.status(200).json({ message: "Update successfulyy", Update: update });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
+  }
 };
