@@ -1,3 +1,4 @@
+import { ReturnDocument } from "mongodb";
 import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
 export const AddtoCart = async (req, res) => {
@@ -36,21 +37,45 @@ export const AddtoCart = async (req, res) => {
   }
 };
 //GET CART
-export const getCart=async(req,res)=>{
-  try{
-    const userId=req.user.userID
-    
-    const find=await Cart.find({user:userId}).populate('cart.product')
-    if(find.length==0){
-      return res.status(404).json({message:"Cart not found"})
+export const getCart = async (req, res) => {
+  try {
+    const userId = req.user.userID;
+
+    const find = await Cart.findOne({ user: userId }).populate("cart.product");
+    if (!find) {
+      return res.status(404).json({ message: "Cart not found" });
     }
     res.status(200).json({ message: "Cart fetch", Cart: find });
-
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ error: err.message });
   }
-  catch(err){
-        console.log(err.message);
-        res.status(500).json({ error: err.message });
-    
-
+};
+//DELETE
+export const delCart = async (req, res) => {
+  try{
+  const ID = req.params.id;
+  const userId = req.user.userID;
+  const cart = await Cart.findOneAndUpdate(
+    { user: userId },
+    {
+      $pull: {
+        cart: {
+          product: ID,
+        },
+      },
+    },
+    {
+      new: true,
+    },
+  );
+  if (!cart) {
+   return res.status(404).json({ message: "Producct not found" });
   }
+  res.status(200).json({message:"Product Deleted"})
 }
+catch(err){
+  console.log(err.message)
+  res.status(500).json({message:err.message})
+}
+};

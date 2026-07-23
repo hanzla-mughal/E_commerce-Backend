@@ -12,7 +12,7 @@ app.use('/api/auth',routes)
 app.use('/api/category',router)
 app.use('/api/product',product)
 app.use('/api/cart',cart)
-
+ 
 app.use((err,req,res,next)=>{
      console.error(err);
 
